@@ -1,5 +1,6 @@
 /* eslint no-console: 0 */
 /* eslint no-eval: 0 */
+
 import * as acorn from 'acorn';
 import acornJsx from 'acorn-jsx';
 import acornStage3 from 'acorn-stage3';
@@ -25,17 +26,20 @@ const defaults = {
 
   sort: false, // sort keys in alphabetical order
 
-  attr: { // HTML attributes to parse
+  attr: {
+    // HTML attributes to parse
     list: ['data-i18n'],
-    extensions: ['.html', '.htm']
+    extensions: ['.html', '.htm'],
   },
 
-  func: { // function names to parse
+  func: {
+    // function names to parse
     list: ['i18next.t', 'i18n.t'],
-    extensions: ['.js', '.jsx']
+    extensions: ['.js', '.jsx'],
   },
 
-  trans: { // Trans component (https://github.com/i18next/react-i18next)
+  trans: {
+    // Trans component (https://github.com/i18next/react-i18next)
     component: 'Trans',
     i18nKey: 'i18nKey',
     defaultsKey: 'defaults',
@@ -74,7 +78,7 @@ const defaults = {
 
     // Normalize line endings to '\r\n', '\r', '\n', or 'auto' for the current operating system. Defaults to '\n'.
     // Aliases: 'CRLF', 'CR', 'LF', 'crlf', 'cr', 'lf'
-    lineEnding: '\n'
+    lineEnding: '\n',
   },
 
   keySeparator: '.', // char to separate keys
@@ -94,7 +98,7 @@ const defaults = {
   // interpolation options
   interpolation: {
     prefix: '{{', // prefix for interpolation
-    suffix: '}}' // suffix for interpolation
+    suffix: '}}', // suffix for interpolation
   },
   metadata: {}, // additional custom options
   allowDynamicKeys: false, // allow Dynamic Keys
@@ -110,7 +114,7 @@ const matchBalancedParentheses = (str = '') => {
 
   str = '' + str; // ensure string
   for (i = 0; i < str.length; ++i) {
-    if ((start >= 0) && (stack.length === 0)) {
+    if (start >= 0 && stack.length === 0) {
       return str.substring(start, i);
     }
 
@@ -118,7 +122,7 @@ const matchBalancedParentheses = (str = '') => {
     if (bracePosition < 0) {
       continue;
     }
-    if ((bracePosition % 2) === 0) {
+    if (bracePosition % 2 === 0) {
       if (start < 0) {
         start = i; // remember the start position
       }
@@ -172,10 +176,18 @@ const normalizeOptions = (options) => {
       _.set(options, 'trans.acorn', defaults.trans.acorn);
     }
     if (_.isUndefined(_.get(options, 'trans.supportBasicHtmlNodes'))) {
-      _.set(options, 'trans.supportBasicHtmlNodes', defaults.trans.supportBasicHtmlNodes);
+      _.set(
+        options,
+        'trans.supportBasicHtmlNodes',
+        defaults.trans.supportBasicHtmlNodes
+      );
     }
     if (_.isUndefined(_.get(options, 'trans.keepBasicHtmlNodesFor'))) {
-      _.set(options, 'trans.keepBasicHtmlNodesFor', defaults.trans.keepBasicHtmlNodesFor);
+      _.set(
+        options,
+        'trans.keepBasicHtmlNodesFor',
+        defaults.trans.keepBasicHtmlNodesFor
+      );
     }
   }
 
@@ -223,9 +235,9 @@ const normalizeOptions = (options) => {
 };
 
 /**
-* Creates a new parser
-* @constructor
-*/
+ * Creates a new parser
+ * @constructor
+ */
 class Parser {
   options = { ...defaults };
 
@@ -241,7 +253,7 @@ class Parser {
   constructor(options) {
     this.options = normalizeOptions({
       ...this.options,
-      ...options
+      ...options,
     });
 
     const i18nextInstance = i18next.createInstance();
@@ -257,7 +269,8 @@ class Parser {
       this.resStore[lng] = this.resStore[lng] || {};
       this.resScan[lng] = this.resScan[lng] || {};
 
-      this.pluralSuffixes[lng] = i18nextInstance.services.pluralResolver.getSuffixes(lng);
+      this.pluralSuffixes[lng] =
+        i18nextInstance.services.pluralResolver.getSuffixes(lng);
 
       if (this.pluralSuffixes[lng].length === 0) {
         this.log(`No plural rule found for: ${lng}`);
@@ -271,10 +284,16 @@ class Parser {
 
         try {
           if (fs.existsSync(resPath)) {
-            this.resStore[lng][ns] = JSON.parse(fs.readFileSync(resPath, 'utf-8'));
+            this.resStore[lng][ns] = JSON.parse(
+              fs.readFileSync(resPath, 'utf-8')
+            );
           }
         } catch (err) {
-          this.error(`Unable to load resource file ${chalk.yellow(JSON.stringify(resPath))}: lng=${lng}, ns=${ns}`);
+          this.error(
+            `Unable to load resource file ${chalk.yellow(
+              JSON.stringify(resPath)
+            )}: lng=${lng}, ns=${ns}`
+          );
           this.error(err);
         }
       });
@@ -298,29 +317,45 @@ class Parser {
     const options = this.options;
 
     const regex = {
-      lng: new RegExp(_.escapeRegExp(options.interpolation.prefix + 'lng' + options.interpolation.suffix), 'g'),
-      ns: new RegExp(_.escapeRegExp(options.interpolation.prefix + 'ns' + options.interpolation.suffix), 'g')
+      lng: new RegExp(
+        _.escapeRegExp(
+          options.interpolation.prefix + 'lng' + options.interpolation.suffix
+        ),
+        'g'
+      ),
+      ns: new RegExp(
+        _.escapeRegExp(
+          options.interpolation.prefix + 'ns' + options.interpolation.suffix
+        ),
+        'g'
+      ),
     };
 
     return _.isFunction(options.resource.loadPath)
       ? options.resource.loadPath(lng, ns)
-      : options.resource.loadPath
-        .replace(regex.lng, lng)
-        .replace(regex.ns, ns);
+      : options.resource.loadPath.replace(regex.lng, lng).replace(regex.ns, ns);
   }
 
   formatResourceSavePath(lng, ns) {
     const options = this.options;
     const regex = {
-      lng: new RegExp(_.escapeRegExp(options.interpolation.prefix + 'lng' + options.interpolation.suffix), 'g'),
-      ns: new RegExp(_.escapeRegExp(options.interpolation.prefix + 'ns' + options.interpolation.suffix), 'g')
+      lng: new RegExp(
+        _.escapeRegExp(
+          options.interpolation.prefix + 'lng' + options.interpolation.suffix
+        ),
+        'g'
+      ),
+      ns: new RegExp(
+        _.escapeRegExp(
+          options.interpolation.prefix + 'ns' + options.interpolation.suffix
+        ),
+        'g'
+      ),
     };
 
     return _.isFunction(options.resource.savePath)
       ? options.resource.savePath(lng, ns)
-      : options.resource.savePath
-        .replace(regex.lng, lng)
-        .replace(regex.ns, ns);
+      : options.resource.savePath.replace(regex.lng, lng).replace(regex.ns, ns);
   }
 
   fixStringAfterRegExpAsArray(strToFix) {
@@ -369,12 +404,18 @@ class Parser {
     // Single character escape sequences
     // Note: IE < 9 treats '\v' as 'v' instead of a vertical tab ('\x0B'). If cross-browser compatibility is a concern, use \x0B instead of \v.
     // Another thing to note is that the \v and \0 escapes are not allowed in JSON strings.
-    fixedString = fixedString.replace(/(\\b|\\f|\\n|\\r|\\t|\\v|\\0|\\\\|\\"|\\')/g, (match) => eval(`"${match}"`));
+    fixedString = fixedString.replace(
+      /(\\b|\\f|\\n|\\r|\\t|\\v|\\0|\\\\|\\"|\\')/g,
+      (match) => eval(`"${match}"`)
+    );
 
     // * Octal escapes have been deprecated in ES5.
     // * Hexadecimal escape sequences: \\x[a-fA-F0-9]{2}
     // * Unicode escape sequences: \\u[a-fA-F0-9]{4}
-    fixedString = fixedString.replace(/(\\x[a-fA-F0-9]{2}|\\u[a-fA-F0-9]{4})/g, (match) => eval(`"${match}"`));
+    fixedString = fixedString.replace(
+      /(\\x[a-fA-F0-9]{2}|\\u[a-fA-F0-9]{4})/g,
+      (match) => eval(`"${match}"`)
+    );
     return fixedString;
   }
 
@@ -385,7 +426,7 @@ class Parser {
         if (value !== undefined) {
           return {
             ...acc,
-            [prop.key.name]: value
+            [prop.key.name]: value,
           };
         }
       }
@@ -394,23 +435,36 @@ class Parser {
   }
 
   handleArrayExpression(elements) {
-    return elements.reduce((acc, element) => [
-      ...acc,
-      this.optionsBuilder(element)
-    ],
-    [],);
+    return elements.reduce(
+      (acc, element) => [...acc, this.optionsBuilder(element)],
+      []
+    );
   }
 
   optionsBuilder(prop) {
-    if (prop.value && prop.value.type === 'Literal' || prop.type && prop.type === 'Literal') {
+    if (
+      (prop.value && prop.value.type === 'Literal') ||
+      (prop.type && prop.type === 'Literal')
+    ) {
       return prop.value.value !== undefined ? prop.value.value : prop.value;
-    } else if (prop.value && prop.value.type === 'TemplateLiteral' || prop.type && prop.type === 'TemplateLiteral') {
-      return prop.value.quasis.map((element) => {
-        return element.value.cooked;
-      }).join('');
-    } else if (prop.value && prop.value.type === 'ObjectExpression' || prop.type && prop.type === 'ObjectExpression') {
+    } else if (
+      (prop.value && prop.value.type === 'TemplateLiteral') ||
+      (prop.type && prop.type === 'TemplateLiteral')
+    ) {
+      return prop.value.quasis
+        .map((element) => {
+          return element.value.cooked;
+        })
+        .join('');
+    } else if (
+      (prop.value && prop.value.type === 'ObjectExpression') ||
+      (prop.type && prop.type === 'ObjectExpression')
+    ) {
       return this.handleObjectExpression(prop.value.properties);
-    } else if (prop.value && prop.value.type === 'ArrayExpression' || prop.type && prop.type === 'ArrayExpression') {
+    } else if (
+      (prop.value && prop.value.type === 'ArrayExpression') ||
+      (prop.type && prop.type === 'ArrayExpression')
+    ) {
       return this.handleArrayExpression(prop.elements);
     } else {
       // Unable to get value of the property
@@ -429,49 +483,55 @@ class Parser {
       opts = {};
     }
 
-    const funcs = (opts.list !== undefined)
-      ? ensureArray(opts.list)
-      : ensureArray(this.options.func.list);
+    const funcs =
+      opts.list !== undefined
+        ? ensureArray(opts.list)
+        : ensureArray(this.options.func.list);
 
     if (funcs.length === 0) {
       return this;
     }
 
     const matchFuncs = funcs
-      .map(func => ('(?:' + _.escapeRegExp(func) + ')'))
+      .map((func) => '(?:' + _.escapeRegExp(func) + ')')
       .join('|');
     // `\s` matches a single whitespace character, which includes spaces, tabs, form feeds, line feeds and other unicode spaces.
     const matchSpecialCharacters = '[\\r\\n\\s]*';
     const string =
-            // backtick (``)
-            '`(?:[^`\\\\]|\\\\(?:.|$))*`' +
-            '|' +
-            // double quotes ("")
-            '"(?:[^"\\\\]|\\\\(?:.|$))*"' +
-            '|' +
-            // single quote ('')
-            '\'(?:[^\'\\\\]|\\\\(?:.|$))*\'';
+      // backtick (``)
+      '`(?:[^`\\\\]|\\\\(?:.|$))*`' +
+      '|' +
+      // double quotes ("")
+      '"(?:[^"\\\\]|\\\\(?:.|$))*"' +
+      '|' +
+      // single quote ('')
+      '\'(?:[^\'\\\\]|\\\\(?:.|$))*\'';
     const stringGroup =
-            matchSpecialCharacters + '(' +
-            string +
-            ')' + matchSpecialCharacters;
+      matchSpecialCharacters + '(' + string + ')' + matchSpecialCharacters;
     const stringNoGroup =
-            matchSpecialCharacters + '(?:' +
-            string +
-            ')' + matchSpecialCharacters;
-    const keys = '(' +
-            stringNoGroup +
-            '|' +
-            '\\[' +
-            stringNoGroup +
-            '(?:[\\,]' + stringNoGroup + ')?' +
-            '\\]' +
-            ')';
-    const pattern = '(?:(?:^\\s*)|[^a-zA-Z0-9_])' +
-            '(?:' + matchFuncs + ')' +
-            '\\(' + keys +
-            '(?:[\\,]' + stringGroup + ')?' +
-            '[\\,\\)]';
+      matchSpecialCharacters + '(?:' + string + ')' + matchSpecialCharacters;
+    const keys =
+      '(' +
+      stringNoGroup +
+      '|' +
+      '\\[' +
+      stringNoGroup +
+      '(?:[\\,]' +
+      stringNoGroup +
+      ')?' +
+      '\\]' +
+      ')';
+    const pattern =
+      '(?:(?:^\\s*)|[^a-zA-Z0-9_])' +
+      '(?:' +
+      matchFuncs +
+      ')' +
+      '\\(' +
+      keys +
+      '(?:[\\,]' +
+      stringGroup +
+      ')?' +
+      '[\\,\\)]';
     const re = new RegExp(pattern, 'gim');
 
     let r;
@@ -493,7 +553,7 @@ class Parser {
           options.defaultValue = defaultValue;
         }
 
-        const endsWithComma = (full[full.length - 1] === ',');
+        const endsWithComma = full[full.length - 1] === ',';
         if (endsWithComma) {
           const { propsFilter } = { ...opts };
 
@@ -552,136 +612,169 @@ class Parser {
 
     const {
       transformOptions = {}, // object
-      component = this.options.trans.component, // string|RegExp
-      i18nKey = this.options.trans.i18nKey, // string
-      defaultsKey = this.options.trans.defaultsKey, // string
-      fallbackKey, // boolean|function
-      acorn: acornOptions = this.options.trans.acorn, // object
-      supportBasicHtmlNodes = this.options.trans.supportBasicHtmlNodes, // boolean
-      keepBasicHtmlNodesFor = this.options.trans.keepBasicHtmlNodesFor, // array
     } = { ...opts };
 
-    const parseJSXElement = (node, code) => {
-      if (!node) {
-        return;
-      }
+    const transList = Array.isArray(this.options.trans)
+      ? this.options.trans
+      : [this.options.trans];
 
-      if (component instanceof RegExp
-        ? !node.openingElement.name.name.match(component)
-        : node.openingElement.name.name !== component) {
-        return;
-      }
+    for (const trans of transList) {
+      const {
+        component, // string|RegExp
+        i18nKey, // string
+        defaultsKey, // string
+        fallbackKey, // boolean|function
+        acorn: acornOptions, // object
+        supportBasicHtmlNodes, // boolean
+        keepBasicHtmlNodesFor, // array
+      } = trans;
 
-      const attr = ensureArray(node.openingElement.attributes)
-        .reduce((acc, attribute) => {
-          if (attribute.type !== 'JSXAttribute' || attribute.name.type !== 'JSXIdentifier' || attribute.value === null) {
-            return acc;
-          }
-
-          const { name } = attribute.name;
-
-          if (attribute.value.type === 'Literal') {
-            acc[name] = attribute.value.value;
-          } else if (attribute.value.type === 'JSXExpressionContainer') {
-            const expression = attribute.value.expression;
-
-            // Identifier
-            if (expression.type === 'Identifier') {
-              acc[name] = expression.name;
-            }
-
-            // Literal
-            if (expression.type === 'Literal') {
-              acc[name] = expression.value;
-            }
-
-            // Object Expression
-            if (expression.type === 'ObjectExpression') {
-              const properties = ensureArray(expression.properties);
-              acc[name] = properties.reduce((obj, property) => {
-                if (property.value.type === 'Literal') {
-                  obj[property.key.name] = property.value.value;
-                } else if (property.value.type === 'TemplateLiteral') {
-                  obj[property.key.name] = property.value.quasis
-                    .map(element => element.value.cooked)
-                    .join('');
-                } else {
-                  // Unable to get value of the property
-                  obj[property.key.name] = '';
-                }
-
-                return obj;
-              }, {});
-            }
-
-            // Template Literal
-            if (expression.type === 'TemplateLiteral') {
-              acc[name] = expression.quasis
-                .map(element => element.value.cooked)
-                .join('');
-            }
-          }
-
-          return acc;
-        }, {});
-
-      const transKey = _.trim(attr[i18nKey]);
-
-      const defaultsString = attr[defaultsKey] || '';
-      if (typeof defaultsString !== 'string') {
-        this.log(`defaults value must be a static string, saw ${chalk.yellow(defaultsString)}`);
-      }
-
-      // https://www.i18next.com/translation-function/essentials#overview-options
-      const tOptions = attr.tOptions;
-      const options = {
-        ...tOptions,
-        defaultValue: defaultsString || nodesToString(node.children, {
-          code,
-          supportBasicHtmlNodes,
-          keepBasicHtmlNodesFor,
-        }),
-        fallbackKey: fallbackKey || this.options.trans.fallbackKey
-      };
-
-      if (Object.prototype.hasOwnProperty.call(attr, 'count')) {
-        options.count = Number(attr.count) || 0;
-      }
-
-      if (Object.prototype.hasOwnProperty.call(attr, 'ns')) {
-        if (typeof attr.ns !== 'string') {
-          this.log(`The ns attribute must be a string, saw ${chalk.yellow(attr.ns)}`);
+      const parseJSXElement = (node, code) => {
+        if (!node) {
+          return;
         }
 
-        options.ns = attr.ns;
-      }
+        if (
+          component instanceof RegExp
+            ? !node.openingElement.name.name.match(component)
+            : node.openingElement.name.name !== component
+        ) {
+          return;
+        }
 
-      if (customHandler) {
-        customHandler(transKey, options);
-        return;
-      }
+        const attr = ensureArray(node.openingElement.attributes).reduce(
+          (acc, attribute) => {
+            if (
+              attribute.type !== 'JSXAttribute' ||
+              attribute.name.type !== 'JSXIdentifier' ||
+              attribute.value === null
+            ) {
+              return acc;
+            }
 
-      this.set(transKey, options);
-    };
+            const { name } = attribute.name;
 
-    try {
-      const ast = acorn.Parser.extend(acornStage3, acornJsx())
-        .parse(content, {
-          ...defaults.trans.acorn,
-          ...acornOptions
+            if (attribute.value.type === 'Literal') {
+              acc[name] = attribute.value.value;
+            } else if (attribute.value.type === 'JSXExpressionContainer') {
+              const expression = attribute.value.expression;
+
+              // Identifier
+              if (expression.type === 'Identifier') {
+                acc[name] = expression.name;
+              }
+
+              // Literal
+              if (expression.type === 'Literal') {
+                acc[name] = expression.value;
+              }
+
+              // Object Expression
+              if (expression.type === 'ObjectExpression') {
+                const properties = ensureArray(expression.properties);
+                acc[name] = properties.reduce((obj, property) => {
+                  if (property.value.type === 'Literal') {
+                    obj[property.key.name] = property.value.value;
+                  } else if (property.value.type === 'TemplateLiteral') {
+                    obj[property.key.name] = property.value.quasis
+                      .map((element) => element.value.cooked)
+                      .join('');
+                  } else {
+                    // Unable to get value of the property
+                    obj[property.key.name] = '';
+                  }
+
+                  return obj;
+                }, {});
+              }
+
+              // Template Literal
+              if (expression.type === 'TemplateLiteral') {
+                acc[name] = expression.quasis
+                  .map((element) => element.value.cooked)
+                  .join('');
+              }
+            }
+
+            return acc;
+          },
+          {}
+        );
+
+        const transKey = _.trim(attr[i18nKey]);
+
+        const defaultsString = attr[defaultsKey] || '';
+        if (typeof defaultsString !== 'string') {
+          this.log(
+            `defaults value must be a static string, saw ${chalk.yellow(
+              defaultsString
+            )}`
+          );
+        }
+
+        // https://www.i18next.com/translation-function/essentials#overview-options
+        const tOptions = attr.tOptions;
+        const options = {
+          ...tOptions,
+          defaultValue:
+            defaultsString ||
+            nodesToString(node.children, {
+              code,
+              supportBasicHtmlNodes,
+              keepBasicHtmlNodesFor,
+            }),
+          fallbackKey: fallbackKey,
+        };
+
+        if (Object.prototype.hasOwnProperty.call(attr, 'count')) {
+          options.count = Number(attr.count) || 0;
+        }
+
+        if (Object.prototype.hasOwnProperty.call(attr, 'ns')) {
+          if (typeof attr.ns !== 'string') {
+            this.log(
+              `The ns attribute must be a string, saw ${chalk.yellow(attr.ns)}`
+            );
+          }
+
+          options.ns = attr.ns;
+        }
+
+        if (customHandler) {
+          customHandler(transKey, options);
+          return;
+        }
+
+        this.set(transKey, options);
+      };
+
+      try {
+        const ast = acorn.Parser.extend(acornStage3, acornJsx()).parse(
+          content,
+          {
+            ...defaults.trans.acorn,
+            ...acornOptions,
+          }
+        );
+
+        jsxwalk(ast, {
+          JSXElement: (node) => parseJSXElement(node, content),
         });
-
-      jsxwalk(ast, {
-        JSXElement: node => parseJSXElement(node, content)
-      });
-    } catch (err) {
-      if (transformOptions.filepath) {
-        this.error(`Unable to parse ${chalk.blue(component)} component from ${chalk.yellow(JSON.stringify(transformOptions.filepath))}`);
-        console.error('    ' + err);
-      } else {
-        this.error(`Unable to parse ${chalk.blue(component)} component:`);
-        console.error(content);
-        console.error('    ' + err);
+      } catch (err) {
+        if (transformOptions.filepath) {
+          this.error(
+            `Unable to parse ${chalk.blue(
+              component
+            )} component from ${chalk.yellow(
+              JSON.stringify(transformOptions.filepath)
+            )}`
+          );
+          console.error('    ' + err);
+        } else {
+          this.error(`Unable to parse ${chalk.blue(component)} component:`);
+          console.error(content);
+          console.error('    ' + err);
+        }
       }
     }
 
@@ -701,9 +794,10 @@ class Parser {
       setter = customHandler;
     }
 
-    const attrs = (opts.list !== undefined)
-      ? ensureArray(opts.list)
-      : ensureArray(this.options.attr.list);
+    const attrs =
+      opts.list !== undefined
+        ? ensureArray(opts.list)
+        : ensureArray(this.options.attr.list);
 
     if (attrs.length === 0) {
       return this;
@@ -720,7 +814,7 @@ class Parser {
         const parts = key.split(']');
         key = parts[1];
       }
-      if (key.indexOf(';') === (key.length - 1)) {
+      if (key.indexOf(';') === key.length - 1) {
         key = key.substr(0, key.length - 2);
       }
 
@@ -728,9 +822,9 @@ class Parser {
     };
 
     const walk = (nodes) => {
-      nodes.forEach(node => {
+      nodes.forEach((node) => {
         if (node.attrs) {
-          node.attrs.forEach(attr => {
+          node.attrs.forEach((attr) => {
             if (attrs.indexOf(attr.name) !== -1) {
               const values = attr.value.split(';');
               values.forEach(parseAttributeValue);
@@ -767,17 +861,33 @@ class Parser {
     if (this.options.removeUnusedKeys) {
       // Merge two objects `resStore` and `resScan` deeply, returning a new merged object with the elements from both `resStore` and `resScan`.
       const overwriteMerge = (destinationArray, sourceArray, options) => sourceArray;
-      const resMerged = deepMerge(this.resStore, this.resScan, { arrayMerge: overwriteMerge });
+      const resMerged = deepMerge(this.resStore, this.resScan, {
+        arrayMerge: overwriteMerge,
+      });
 
       Object.keys(this.resStore).forEach((lng) => {
         Object.keys(this.resStore[lng]).forEach((ns) => {
-          const resStoreKeys = flattenObjectKeys(_.get(this.resStore, [lng, ns], {}));
-          const resScanKeys = flattenObjectKeys(_.get(this.resScan, [lng, ns], {}));
-          const unusedKeys = _.differenceWith(resStoreKeys, resScanKeys, _.isEqual);
+          const resStoreKeys = flattenObjectKeys(
+            _.get(this.resStore, [lng, ns], {})
+          );
+          const resScanKeys = flattenObjectKeys(
+            _.get(this.resScan, [lng, ns], {})
+          );
+          const unusedKeys = _.differenceWith(
+            resStoreKeys,
+            resScanKeys,
+            _.isEqual
+          );
 
           for (let i = 0; i < unusedKeys.length; ++i) {
             _.unset(resMerged[lng][ns], unusedKeys[i]);
-            this.log(`Removed an unused translation key { ${chalk.red(JSON.stringify(unusedKeys[i]))} from ${chalk.red(JSON.stringify(this.formatResourceLoadPath(lng, ns)))}`);
+            this.log(
+              `Removed an unused translation key { ${chalk.red(
+                JSON.stringify(unusedKeys[i])
+              )} from ${chalk.red(
+                JSON.stringify(this.formatResourceLoadPath(lng, ns))
+              )}`
+            );
           }
 
           // Omit empty object
@@ -811,7 +921,10 @@ class Parser {
       //   keySeparator: false
       // })
 
-      if (_.isString(this.options.nsSeparator) && (key.indexOf(this.options.nsSeparator) > -1)) {
+      if (
+        _.isString(this.options.nsSeparator) &&
+        key.indexOf(this.options.nsSeparator) > -1
+      ) {
         const parts = key.split(this.options.nsSeparator);
 
         ns = parts[0];
@@ -821,9 +934,7 @@ class Parser {
       const keys = _.isString(this.options.keySeparator)
         ? key.split(this.options.keySeparator)
         : [key];
-      const lng = opts.lng
-        ? opts.lng
-        : this.options.fallbackLng;
+      const lng = opts.lng ? opts.lng : this.options.fallbackLng;
       const namespaces = resStore[lng] || {};
 
       let value = namespaces[ns];
@@ -855,20 +966,26 @@ class Parser {
     if (_.isString(options)) {
       const defaultValue = options;
       options = {
-        defaultValue: defaultValue
+        defaultValue: defaultValue,
       };
     }
 
-    const nsSeparator = (options.nsSeparator !== undefined)
-      ? options.nsSeparator
-      : this.options.nsSeparator;
-    const keySeparator = (options.keySeparator !== undefined)
-      ? options.keySeparator
-      : this.options.keySeparator;
+    const nsSeparator =
+      options.nsSeparator !== undefined
+        ? options.nsSeparator
+        : this.options.nsSeparator;
+    const keySeparator =
+      options.keySeparator !== undefined
+        ? options.keySeparator
+        : this.options.keySeparator;
 
     let ns = options.ns || this.options.defaultNs;
 
-    console.assert(_.isString(ns) && !!ns.length, 'ns is not a valid string', ns);
+    console.assert(
+      _.isString(ns) && !!ns.length,
+      'ns is not a valid string',
+      ns
+    );
 
     // http://i18next.com/translate/keyBasedFallback/
     // Set nsSeparator and keySeparator to false if you prefer
@@ -878,7 +995,7 @@ class Parser {
     //   keySeparator: false
     // })
 
-    if (_.isString(nsSeparator) && (key.indexOf(nsSeparator) > -1)) {
+    if (_.isString(nsSeparator) && key.indexOf(nsSeparator) > -1) {
       const parts = key.split(nsSeparator);
 
       ns = parts[0];
@@ -916,22 +1033,31 @@ class Parser {
       pluralFallback,
       pluralSeparator,
       defaultLng,
-      defaultValue
+      defaultValue,
     } = this.options;
 
     lngs.forEach((lng) => {
       let resLoad = this.resStore[lng] && this.resStore[lng][ns];
       let resScan = this.resScan[lng] && this.resScan[lng][ns];
 
-      if (!_.isPlainObject(resLoad)) { // Skip undefined namespace
-        this.error(`${chalk.yellow(JSON.stringify(ns))} does not exist in the namespaces (${chalk.yellow(JSON.stringify(this.options.ns))}): key=${chalk.yellow(JSON.stringify(key))}, options=${chalk.yellow(JSON.stringify(options))}`);
+      if (!_.isPlainObject(resLoad)) {
+        // Skip undefined namespace
+        this.error(
+          `${chalk.yellow(
+            JSON.stringify(ns)
+          )} does not exist in the namespaces (${chalk.yellow(
+            JSON.stringify(this.options.ns)
+          )}): key=${chalk.yellow(JSON.stringify(key))}, options=${chalk.yellow(
+            JSON.stringify(options)
+          )}`
+        );
         return;
       }
 
       Object.keys(keys).forEach((index) => {
         const key = keys[index];
 
-        if (index < (keys.length - 1)) {
+        if (index < keys.length - 1) {
           resLoad[key] = resLoad[key] || {};
           resLoad = resLoad[key];
           resScan[key] = resScan[key] || {};
@@ -1005,8 +1131,10 @@ class Parser {
 
           if (containsContext && containsPlural) {
             suffixes.forEach((pluralSuffix) => {
-              contextValues.forEach(contextValue => {
-                resKeys.push(`${key}${contextSeparator}${contextValue}${pluralSuffix}`);
+              contextValues.forEach((contextValue) => {
+                resKeys.push(
+                  `${key}${contextSeparator}${contextValue}${pluralSuffix}`
+                );
               });
             });
           }
@@ -1016,7 +1144,7 @@ class Parser {
           }
 
           if (containsContext) {
-            contextValues.forEach(contextValue => {
+            contextValues.forEach((contextValue) => {
               resKeys.push(`${key}${contextSeparator}${contextValue}`);
             });
           }
@@ -1024,35 +1152,68 @@ class Parser {
 
         resKeys.forEach((resKey) => {
           if (resLoad[resKey] === undefined) {
-            if (options.defaultValue_plural !== undefined && resKey.endsWith(`${pluralSeparator}plural`)) {
+            if (
+              options.defaultValue_plural !== undefined &&
+              resKey.endsWith(`${pluralSeparator}plural`)
+            ) {
               resLoad[resKey] = options.defaultValue_plural;
             } else {
               // Fallback to `defaultValue`
               resLoad[resKey] = _.isFunction(defaultValue)
                 ? defaultValue(lng, ns, key, options)
-                : (options.defaultValue || defaultValue);
+                : options.defaultValue || defaultValue;
             }
 
             if (resLoad[resKey] !== undefined) {
-              this.log(`Added a new translation key { ${chalk.yellow(JSON.stringify(resKey))}: ${chalk.yellow(JSON.stringify(resLoad[resKey]))} } to ${chalk.yellow(JSON.stringify(this.formatResourceLoadPath(lng, ns)))}`);
+              this.log(
+                `Added a new translation key { ${chalk.yellow(
+                  JSON.stringify(resKey)
+                )}: ${chalk.yellow(
+                  JSON.stringify(resLoad[resKey])
+                )} } to ${chalk.yellow(
+                  JSON.stringify(this.formatResourceLoadPath(lng, ns))
+                )}`
+              );
             }
-          } else if (options.defaultValue && (!options.defaultValue_plural || !resKey.endsWith(`${pluralSeparator}plural`))) {
+          } else if (
+            options.defaultValue &&
+            (!options.defaultValue_plural ||
+              !resKey.endsWith(`${pluralSeparator}plural`))
+          ) {
             const value = _.isFunction(defaultValue)
               ? defaultValue(lng, ns, key, options)
-              : (options.defaultValue || defaultValue); // Use `options.defaultValue` if specified
+              : options.defaultValue || defaultValue; // Use `options.defaultValue` if specified
 
             if (!resLoad[resKey]) {
               resLoad[resKey] = value;
-            } else if ((resLoad[resKey] !== value) && (lng === defaultLng)) {
+            } else if (resLoad[resKey] !== value && lng === defaultLng) {
               // A default value has provided but it's different with the expected default
-              this.log(`The translation key ${chalk.yellow(JSON.stringify(resKey))}, with a default value of "${chalk.yellow(options.defaultValue)}" has a different default value, you may need to check the translation key of default language (${defaultLng})`);
+              this.log(
+                `The translation key ${chalk.yellow(
+                  JSON.stringify(resKey)
+                )}, with a default value of "${chalk.yellow(
+                  options.defaultValue
+                )}" has a different default value, you may need to check the translation key of default language (${defaultLng})`
+              );
             }
-          } else if (options.defaultValue_plural && resKey.endsWith(`${pluralSeparator}plural`)) {
+          } else if (
+            options.defaultValue_plural &&
+            resKey.endsWith(`${pluralSeparator}plural`)
+          ) {
             if (!resLoad[resKey]) {
               resLoad[resKey] = options.defaultValue_plural;
-            } else if ((resLoad[resKey] !== options.defaultValue_plural) && (lng === defaultLng)) {
+            } else if (
+              resLoad[resKey] !== options.defaultValue_plural &&
+              lng === defaultLng
+            ) {
               // A default value has provided but it's different with the expected default
-              this.log(`The translation key ${chalk.yellow(JSON.stringify(resKey))}, with a default value of "${chalk.yellow(options.defaultValue_plural)}" has a different default value, you may need to check the translation key of default language (${defaultLng})`);
+              this.log(
+                `The translation key ${chalk.yellow(
+                  JSON.stringify(resKey)
+                )}, with a default value of "${chalk.yellow(
+                  options.defaultValue_plural
+                )}" has a different default value, you may need to check the translation key of default language (${defaultLng})`
+              );
             }
           }
 
